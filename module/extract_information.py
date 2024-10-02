@@ -95,8 +95,10 @@ def _extract_info_phonenum(file, text, name, page_num, infos):
 
 
 def extract_personal_information(folder_path, file, text=None, page_num=None, error=None):
-    """정규표현식으로 개인정보를 추출하여 리스트로 return합니다"""
+    """정규표현식으로 개인정보를 추출한 뒤 list와 list 변경 여부를 return합니다"""
     infos = []
+    infos_length = len(infos)
+    is_success = False
 
     cmt, org = _find_name(folder_path, file)
 
@@ -115,4 +117,7 @@ def extract_personal_information(folder_path, file, text=None, page_num=None, er
     _extract_info_phonenum(file, text, _find_name(
         folder_path, file), page_num, infos)
 
-    return infos
+    if infos_length < len(infos) and text is not None:
+        is_success = True
+
+    return infos, is_success
