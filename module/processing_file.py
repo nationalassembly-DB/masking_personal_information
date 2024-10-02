@@ -18,8 +18,9 @@ def processing_pdf(folder_path, pdf_file):
         for page_num in range(doc.page_count):
             page = doc.load_page(page_num)
             text = page.get_text()
-            pdf_infos.extend(extract_personal_information(folder_path,
-                                                          pdf_file, text=text, page_num=page_num))
+            result, _ = extract_personal_information(folder_path,
+                                                     pdf_file, text=text, page_num=page_num)
+            pdf_infos.extend(result)
     except Exception as e:  # pylint: disable=W0703
         error_log = str(e)
         pdf_infos.extend(
@@ -45,9 +46,22 @@ def processing_hwp(folder_path, hwp_file):
             hwp.MovePos(201)
             if state in [0, 1]:
                 break
-            hwp_infos.extend(
-                extract_personal_information(folder_path, hwp_file, text=text,
-                                             page_num=hwp.KeyIndicator()[3]))
+            result, is_success = extract_personal_information(folder_path, hwp_file, text=text,
+                                                              page_num=hwp.KeyIndicator()[3])
+            hwp_infos.extend(result)
+
+            if not is_success:
+                continue
+            text_num = len(text.replace('\r', '').replace('\n', ''))
+
+            hwp.Run("Select")
+            hwp.Run("Select")
+            hwp.HAction.GetDefault(
+                "InsertText", hwp.HParameterSet.HInsertText.HSet)
+            hwp.HParameterSet.HInsertText.Text = '*' * text_num
+            hwp.HAction.Execute(
+                "InsertText", hwp.HParameterSet.HInsertText.HSet)
+            hwp.Run("Cancel")
 
     except Exception as e:  # pylint: disable=W0703
         error_log = str(e)
@@ -57,6 +71,7 @@ def processing_hwp(folder_path, hwp_file):
 
     finally:
         if hwp:
+            hwp.Save(True)
             hwp.ReleaseScan()
             hwp.Quit()
 
