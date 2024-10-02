@@ -91,7 +91,8 @@ def processing_excel(folder_path, excel_file):
                     excel_infos.extend(result)
 
                     if is_success and text is not None:
-                        cell.value = '*' * len(text)
+                        cell.value = '*' * \
+                            len(text.replace('\r', '').replace('\n', ''))
 
         # 수정된 내용을 파일에 저장
         workbook.save(excel_file)
