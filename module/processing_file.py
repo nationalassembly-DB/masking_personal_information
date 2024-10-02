@@ -51,9 +51,8 @@ def processing_hwp(folder_path, hwp_file):
                                                               page_num=hwp.KeyIndicator()[3])
             hwp_infos.extend(result)
 
-            if not is_success:
-                continue
-            _masking_hwp(hwp, text)
+            if is_success and text is not None:
+                _masking_hwp(hwp, text)
 
     except Exception as e:  # pylint: disable=W0703
         error_log = str(e)
