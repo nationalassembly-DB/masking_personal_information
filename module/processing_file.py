@@ -2,12 +2,13 @@
 
 
 import warnings
-import pandas as pd
 import fitz
-
-
 import win32com.client as win32
+from openpyxl import load_workbook
+
+
 from module.extract_information import extract_personal_information
+from module.masking_file import _masking_hwp
 
 
 def processing_pdf(folder_path, pdf_file):
@@ -52,16 +53,7 @@ def processing_hwp(folder_path, hwp_file):
 
             if not is_success:
                 continue
-            text_num = len(text.replace('\r', '').replace('\n', ''))
-
-            hwp.Run("Select")
-            hwp.Run("Select")
-            hwp.HAction.GetDefault(
-                "InsertText", hwp.HParameterSet.HInsertText.HSet)
-            hwp.HParameterSet.HInsertText.Text = '*' * text_num
-            hwp.HAction.Execute(
-                "InsertText", hwp.HParameterSet.HInsertText.HSet)
-            hwp.Run("Cancel")
+            _masking_hwp(hwp, text)
 
     except Exception as e:  # pylint: disable=W0703
         error_log = str(e)
@@ -84,26 +76,29 @@ def processing_excel(folder_path, excel_file):
 
     try:
         warnings.filterwarnings(action='ignore')
-        xls = pd.ExcelFile(excel_file)
+        workbook = load_workbook(excel_file)
 
-        for sheet_name in xls.sheet_names:
-            df = pd.read_excel(xls, sheet_name=sheet_name)
-            for row_index, row in df.iterrows():
-                if row.isnull().all():
-                    continue
-                for col_index, cell in enumerate(row):
-                    if pd.isna(cell):
+        for sheet_name in workbook.sheetnames:
+            sheet = workbook[sheet_name]
+            for row_index, row in enumerate(sheet.iter_rows(), start=1):
+                for col_index, cell in enumerate(row, start=1):
+                    if cell.value is None:
                         continue
-                    xlsx_index = f"[{row_index + 2}, {col_index + 1}]"
-                    text = str(cell).strip()
-                    excel_infos.extend(
-                        extract_personal_information(folder_path, excel_file,
-                                                     text=text, page_num=xlsx_index))
+                    xls_index = f"[{row_index + 1}, {col_index}]"
+                    text = str(cell.value).strip()
+                    result, is_success = extract_personal_information(folder_path, excel_file,
+                                                                      text=text, page_num=xls_index)
+                    excel_infos.extend(result)
+
+                    if is_success and text is not None:
+                        cell.value = '*' * len(text)
+
+        # 수정된 내용을 파일에 저장
+        workbook.save(excel_file)
 
     except Exception as e:  # pylint: disable=W0703
-        error_log = str(e)
         excel_infos.extend(
-            extract_personal_information(folder_path, excel_file, error=error_log))
+            extract_personal_information(folder_path, excel_file, error=str(e)))
         print(excel_file, e)
 
     return excel_infos
