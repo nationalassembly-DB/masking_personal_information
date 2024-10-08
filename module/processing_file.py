@@ -55,6 +55,7 @@ def processing_hwp(folder_path, hwp_file):
 
             if is_success and text is not None:
                 _masking_hwp(hwp, text)
+        hwp.SetMessageBoxMode(0x00000010)
 
     except Exception as e:  # pylint: disable=W0703
         error_log = str(e)
@@ -64,7 +65,7 @@ def processing_hwp(folder_path, hwp_file):
 
     finally:
         if hwp:
-            hwp.Save(True)
+            hwp.Save(False)
             hwp.ReleaseScan()
             hwp.Quit()
 
