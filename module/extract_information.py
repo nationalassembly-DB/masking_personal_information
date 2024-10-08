@@ -12,7 +12,7 @@ from phonenumbers import NumberParseException
 from module.data import PATTERNS
 
 
-def _find_name(folder_path, file):
+def _find_name(folder_path, file) -> tuple:
     """위원회, 피감기관을 파일명에서 검색 후 추출합니다"""
     if os.path.basename(folder_path).find(' ') != -1:
         if os.path.basename(folder_path).find('_') != -1:
@@ -29,7 +29,7 @@ def _find_name(folder_path, file):
     return cmt, org
 
 
-def _extract_info_patterns(file, text, name, page_num, infos):
+def _extract_info_patterns(file, text, name: tuple, page_num, infos: list) -> list:
     """정규표현식 패턴을 사용하여 개인정보 추출을 시도합니다"""
     cmt, org = name
     for info_type, pattern in PATTERNS.items():

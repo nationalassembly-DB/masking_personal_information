@@ -8,7 +8,6 @@ from openpyxl import load_workbook
 
 
 from module.extract_information import extract_personal_information
-from module.masking_file import _masking_hwp
 
 
 def processing_pdf(folder_path, pdf_file):
@@ -54,7 +53,17 @@ def processing_hwp(folder_path, hwp_file):
             hwp_infos.extend(result)
 
             if is_success and text is not None:
-                _masking_hwp(hwp, text)
+                text_num = len(text.replace('\r', '').replace('\n', ''))
+
+                hwp.Run("Select")
+                hwp.Run("Select")
+                hwp.HAction.GetDefault(
+                    "InsertText", hwp.HParameterSet.HInsertText.HSet)
+                hwp.HParameterSet.HInsertText.Text = '*' * text_num
+                hwp.HAction.Execute(
+                    "InsertText", hwp.HParameterSet.HInsertText.HSet)
+                hwp.Run("Cancel")
+
         hwp.SetMessageBoxMode(0x00000010)
 
     except Exception as e:  # pylint: disable=W0703

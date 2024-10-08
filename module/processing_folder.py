@@ -17,7 +17,7 @@ def processing_folder(folder_path, excel_file):
         for filename in natsorted(files):
             if filename.lower().endswith('.pdf'):
                 pdf_file_path = os.path.join('\\\\?\\', root, filename)
-                print(f"진행중 : {pdf_file_path}")
+                # print(f"진행중 : {pdf_file_path}")
                 pdf_result = processing_pdf(folder_path, pdf_file_path)
                 infos_list.extend(pdf_result)
             elif filename.lower().endswith('.hwp') or filename.lower().endswith('.hwpx'):
